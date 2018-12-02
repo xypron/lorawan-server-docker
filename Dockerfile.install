@@ -1,0 +1,28 @@
+FROM ubuntu:16.04
+
+RUN adduser user --uid 9997 --disabled-login --gecos 'User,,,'
+
+RUN apt-get update
+RUN apt-get install -y apt-utils wget
+
+WORKDIR /home/user
+
+# Install Erlang OTP 21.1.3
+USER root:root
+RUN apt-get install -y libwxbase3.0-0v5 libwxgtk3.0-0v5 libsctp1
+COPY esl-erlang_21.1.3-2~ubuntu~xenial_amd64.deb /home/user
+RUN dpkg -i esl-erlang_21.1.3-2~ubuntu~xenial_amd64.deb
+RUN rm /home/user/esl-erlang_21.1.3-2~ubuntu~xenial_amd64.deb
+
+# Install lorawan-server
+USER root:root
+COPY lorawan-server_0.6.4_all.deb /home/user
+RUN dpkg -i lorawan-server_0.6.4_all.deb
+RUN rm /home/user/lorawan-server_0.6.4_all.deb
+COPY lorawan-server.sh /usr/bin/
+
+# Prepare for running
+EXPOSE 1680/udp
+EXPOSE 8080/tcp
+USER lorawan
+CMD lorawan-server.sh
